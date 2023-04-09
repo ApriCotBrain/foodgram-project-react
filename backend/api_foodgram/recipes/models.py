@@ -1,6 +1,6 @@
 from django.db import models
 
-from users.models import User
+from users.models import CustomUser
 
 
 class Tag(models.Model):
@@ -25,13 +25,6 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
-    # def colored_name(self):
-    #     return format_html(
-    #         '<span style="color: #{};">{}</span>',
-    #         self.color,
-    #         self.name
-    #     )
-
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -53,7 +46,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='recipe_author',
         verbose_name='Автор рецепта',
@@ -80,7 +73,7 @@ class Recipe(models.Model):
         through='RecipeIngredient',
         verbose_name='Ингредиент рецепта',
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         through='RecipeTag',
         verbose_name='Тэг рецепта',
@@ -93,10 +86,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        #constraints = [
-            #models.UniqueConstraint(fields=['name', 'image'],
-                                    #name='unique_name_image')
-        #]
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.name
@@ -121,11 +111,6 @@ class RecipeIngredient(models.Model):
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
 
-        # constraints = [
-        #     models.UniqueConstraint(fields=['recipe', 'ingredient'],
-        #                             name='unique_name_image')
-        # ]
-
     def __str__(self):
         return f'{self.recipe} {self.ingredient}'
 
@@ -135,7 +120,7 @@ class RecipeTag(models.Model):
         Recipe,
         on_delete=models.CASCADE,
     )
-    tag = models.ForeignKey(
+    tags = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE,
     )
@@ -145,12 +130,12 @@ class RecipeTag(models.Model):
         verbose_name_plural = 'Тэги рецептов'
 
     def __str__(self):
-        return f'{self.recipe} {self.tag}'
+        return f'{self.recipe} {self.tags}'
 
 
 class Favorite(models.Model):
     user = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='fan',
         verbose_name='Фэн',
@@ -177,25 +162,23 @@ class Favorite(models.Model):
         return str(self.user_id)
 
 
-class Subscription(models.Model):
+class Basket(models.Model):
     user = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
-        related_name='subscriber',
-        verbose_name='Подписчик')
-    subscribe = models.ForeignKey(
-        User,
+        related_name='basket_user',
+        verbose_name='Пользователь',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
         on_delete=models.CASCADE,
-        related_name='subscribe',
-        verbose_name='Автор рецептов')
+        related_name='basket_recipe',
+        verbose_name='Рецепт',
+    )
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'subscribe'],
-                                    name='unique_subscribe')
-        ]
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
 
     def __str__(self):
-        return str(self.user_id)
+        return f'{self.user} {self.recipe}'

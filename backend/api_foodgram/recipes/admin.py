@@ -1,9 +1,9 @@
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
+
 from recipes.models import (
-    Ingredient, Favorite, Recipe, RecipeIngredient, Tag, RecipeTag,
-    Subscription)
+    Ingredient, Favorite, Recipe, RecipeIngredient, Tag, RecipeTag, Basket)
 
 
 class IngredientResource(resources.ModelResource):
@@ -20,6 +20,7 @@ class IngredientResource(resources.ModelResource):
 class AdminIngredient(ImportExportModelAdmin):
     resource_classes = [IngredientResource]
     list_display = ('name', 'measurement_unit',)
+    list_filter = ('name', )
 
 
 @admin.register(Tag)
@@ -30,9 +31,12 @@ class AdminTag(admin.ModelAdmin):
 @admin.register(Recipe)
 class AdminRecipe(admin.ModelAdmin):
     list_display = (
-        'author', 'name', 'image', 'cooking_time', 'text', )
-    # search_fields = ('name',)
-    # list_filter = ('author', 'tags', 'cooking_time', )
+        'author', 'name', 'image', 'cooking_time', 'text', 'count_favorites',
+    )
+    list_filter = ('name', 'author', 'tags',)
+
+    def count_favorites(self, obj):
+        return obj.recipe.count()
 
 
 @admin.register(RecipeIngredient)
@@ -42,7 +46,7 @@ class AdminRecipeIngredient(admin.ModelAdmin):
 
 @admin.register(RecipeTag)
 class AdminRecipeTag(admin.ModelAdmin):
-    list_display = ('recipe', 'tag')
+    list_display = ('recipe', 'tags')
 
 
 @admin.register(Favorite)
@@ -50,6 +54,6 @@ class AdminFavorite(admin.ModelAdmin):
     list_display = ('id', 'recipe', 'user')
 
 
-@admin.register(Subscription)
-class AdminSubscriptions(admin.ModelAdmin):
-    list_display = ('id', 'subscribe', 'user')
+@admin.register(Basket)
+class AdminBasket(admin.ModelAdmin):
+    list_display = ('id', 'recipe', 'user')

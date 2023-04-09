@@ -2,22 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-# class CustomUserManager(UserManager):
-#
-#     def get_by_natural_key(self, username):
-#         return self.get(
-#             Q(**{self.model.USERNAME_FIELD: username}) |
-#             Q(**{self.model.EMAIL_FIELD: username})
-#         )
+class CustomUser(AbstractUser):
 
-
-class User(AbstractUser):
-    ADMIN = 'admin'
-    USER = 'user'
-    USER_ROLES = [
-        (ADMIN, 'admin'),
-        (USER, 'user'),
-    ]
     username = models.CharField(
         max_length=150,
         unique=True,
@@ -25,7 +11,7 @@ class User(AbstractUser):
     )
     email = models.EmailField(
         max_length=254,
-        unique=True
+        unique=True,
     )
     first_name = models.CharField(
         max_length=150,
@@ -33,36 +19,37 @@ class User(AbstractUser):
     last_name = models.CharField(
         max_length=150,
     )
-    password = models.CharField(
-        max_length=150,
-    )
-    role = models.CharField(
-        'Роль пользователя',
-        max_length=20,
-        choices=USER_ROLES,
-        default=USER
-    )
-    confirmation_code = models.CharField(
-        'Код подтверждения',
-        max_length=100,
-        blank=True
-    )
-    #objects = CustomUserManager()
     is_subscribed = models.BooleanField(
         default=False
     )
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        ordering = ['-id']
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='subscriber',
+        verbose_name='Подписчик')
+    subscribe = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='subscribe',
+        verbose_name='Автор рецептов')
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'subscribe'],
+                                    name='unique_subscribe')
+        ]
 
     def __str__(self):
-        return self.username
-
-    @property
-    def is_user(self):
-        return self.role == self.USER
-
-    @property
-    def is_admin(self):
-        return self.role == self.ADMIN
+        return str(self.user_id)
