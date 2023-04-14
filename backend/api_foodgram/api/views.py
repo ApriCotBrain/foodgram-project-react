@@ -1,9 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import mixins, viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
@@ -12,9 +13,26 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import *
-from recipes.models import Ingredient, Recipe, Tag, Favorite
-from users.models import Subscription
+from api.serializers import (
+    CreateRecipeSerializer,
+    CustomUserSerializer,
+    CutRecipeSerializer,
+    IngredientSerializer,
+    ReadRecipeSerializer,
+    SubscriptionSerializer,
+    TagSerializer,
+)
+from recipes.models import (
+    Ingredient,
+    Favorite,
+    Recipe,
+    RecipeIngredient,
+    Tag,
+    ShoppingCart,
+)
+from users.models import CustomUser, Subscription
+
+User = get_user_model()
 
 
 class TagViewSet(viewsets.ModelViewSet):
