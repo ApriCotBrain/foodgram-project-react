@@ -7,7 +7,6 @@ class CustomUser(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        db_index=True
     )
     email = models.EmailField(
         max_length=254,
@@ -19,9 +18,6 @@ class CustomUser(AbstractUser):
     last_name = models.CharField(
         max_length=150,
     )
-    is_subscribed = models.BooleanField(
-        default=False
-    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
 
@@ -29,6 +25,9 @@ class CustomUser(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         ordering = ['-id']
+
+    def __str__(self):
+        return self.username
 
 
 class Subscription(models.Model):
@@ -52,4 +51,4 @@ class Subscription(models.Model):
         ]
 
     def __str__(self):
-        return str(self.user_id)
+        return f'{self.user} {self.subscribe}'

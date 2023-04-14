@@ -3,7 +3,14 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
 from recipes.models import (
-    Ingredient, Favorite, Recipe, RecipeIngredient, Tag, RecipeTag, Basket)
+    Ingredient,
+    Favorite,
+    Recipe,
+    RecipeIngredient,
+    RecipeTag,
+    ShoppingCart,
+    Tag
+)
 
 
 class IngredientResource(resources.ModelResource):
@@ -36,7 +43,7 @@ class AdminRecipe(admin.ModelAdmin):
     list_filter = ('name', 'author', 'tags',)
 
     def count_favorites(self, obj):
-        return obj.recipe.count()
+        return obj.favorites.count()
 
 
 @admin.register(RecipeIngredient)
@@ -54,6 +61,6 @@ class AdminFavorite(admin.ModelAdmin):
     list_display = ('id', 'recipe', 'user')
 
 
-@admin.register(Basket)
-class AdminBasket(admin.ModelAdmin):
+@admin.register(ShoppingCart)
+class AdminShoppingCart(admin.ModelAdmin):
     list_display = ('id', 'recipe', 'user')

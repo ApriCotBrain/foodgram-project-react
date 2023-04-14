@@ -6,29 +6,27 @@ from djoser.views import UserViewSet
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, \
-    IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated, IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import *
 from recipes.models import Ingredient, Recipe, Tag, Favorite
-from users.models import CustomUser, Subscription
+from users.models import Subscription
 
 
-class TagViewSet(mixins.RetrieveModelMixin,
-                 mixins.ListModelMixin,
-                 mixins.CreateModelMixin,
-                 viewsets.GenericViewSet):
+class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
-class IngredientViewSet(mixins.RetrieveModelMixin,
-                        mixins.ListModelMixin,
-                        mixins.CreateModelMixin,
-                        viewsets.GenericViewSet):
+class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -36,7 +34,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = CreateRecipeSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('tags',)
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -47,7 +45,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(data, status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
-        if self.request.method in ['POST', 'PATCH']:
+        if self.request.method in ('POST', 'PATCH'):
             return CreateRecipeSerializer
         return ReadRecipeSerializer
 
@@ -64,7 +62,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         url_path='favorite',
         permission_classes=[IsAuthenticated]
     )
@@ -76,99 +74,67 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         url_path='shopping_cart',
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
-            return self.add_to(Basket, request.user, pk)
+            return self.add_to(ShoppingCart, request.user, pk)
         elif request.method == 'DELETE':
-            return self.delete_from(Basket, request.user, pk)
+            return self.delete_from(ShoppingCart, request.user, pk)
 
     @action(
         detail=False,
-        methods=['GET'],
+        methods=('GET',),
         url_path='download_shopping_cart',
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        if request.method == 'GET':
-            basket = (
-                RecipeIngredient.objects.filter(
-                    recipe__basket_recipe__user=request.user
-                )
-                .values('ingredient__name',
-                        'ingredient__measurement_unit',)
-                .annotate(amount=Sum('amount'))
-                .order_by('ingredient__name')
+        basket = (
+            RecipeIngredient.objects.filter(
+                recipe__shopping_cart_recipe__user=request.user
+            )
+            .values('ingredient__name',
+                    'ingredient__measurement_unit',)
+            .annotate(amount=Sum('amount'))
+            .order_by('ingredient__name')
+        )
+
+        response = HttpResponse(content_type='text/plain')
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename=shopping_cart.txt"'
+
+        data = ['Ingredient\tAmount\tMeasurement Unit']
+        for item in basket:
+            data.append(
+                f"{item['ingredient__name']}"
+                f"\t{item['amount']}"
+                f"\t{item['ingredient__measurement_unit']}"
             )
 
-            response = HttpResponse(content_type='text/plain')
-            response[
-                'Content-Disposition'
-            ] = 'attachment; filename=shopping_cart.txt"'
-
-            data = ['Ingredient\tAmount\tMeasurement Unit']
-            for item in basket:
-                data.append(
-                    f"{item['ingredient__name']}"
-                    f"\t{item['amount']}"
-                    f"\t{item['ingredient__measurement_unit']}"
-                )
-
-            response.write('\n'.join(data))
-            return response
+        response.write('\n'.join(data))
+        return response
 
 
 class CustomUserViewSet(UserViewSet):
-    queryset = CustomUser.objects.all()
+    queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = PageNumberPagination
 
-    @action(
-        methods=['GET', ], url_path='me', detail=False,
-        permission_classes=(IsAuthenticated,)
-    )
-    def me(self, request):
-        if request.method == 'GET':
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
-
-    @action(methods=['POST'], url_path='set_password', detail=False,
-            permission_classes=(IsAuthenticated,))
-    def set_password(self, request):
-        serializer = PasswordSerializer(data=request.data)
-        user = request.user
-        if serializer.is_valid():
-            if not user.check_password(serializer.data.get(
-                    'current_password')):
-                return Response({'current_password': ['Wrong password.']},
-                                status=status.HTTP_400_BAD_REQUEST)
-            user.set_password(serializer.data.get('new_password'))
-            user.save()
-            return Response({'status': 'Пароль успешно изменен.'},
-                            status=status.HTTP_200_OK)
-
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
-
-    @action(methods=['GET', ],
+    @action(methods=('GET', ),
             url_path='subscriptions', detail=False,
             permission_classes=(IsAuthenticated,))
     def read_subscribe(self, request):
-        if request.method == 'GET':
-            user = request.user
-            subscriptions = Subscription.objects.filter(user=user)
-            paginator = PageNumberPagination()
-            paginator.page_size = 10
-            subscriptions = paginator.paginate_queryset(subscriptions, request)
+        user = request.user
+        subscriptions = Subscription.objects.filter(user=user)
+        page = self.paginate_queryset(subscriptions)
+        serializer = SubscriptionSerializer(page, many=True,
+                                            context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
-            serializer = SubscriptionSerializer(subscriptions, many=True,
-                                                context={'request': request})
-            return paginator.get_paginated_response(serializer.data)
-
-    @action(methods=['POST', 'DELETE'],
+    @action(methods=('POST', 'DELETE'),
             url_path='subscribe', detail=True,
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id=None):

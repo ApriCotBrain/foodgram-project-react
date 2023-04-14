@@ -1,37 +1,51 @@
 import os
+import dotenv
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-jrfw($kau=p&%15uzqp1!u)q=0jd9l*7k3$x88(!yeb5o13wz='
+dotenv_file = os.path.join(BASE_DIR, '../../infra/.env')
+if os.path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
+#SECRET_KEY = 'django-insecure-jrfw($kau=p&%15uzqp1!u)q=0jd9l*7k3$x88(!yeb5o13wz='
+SECRET_KEY = os.environ['SECRET_KEY']
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+THIRD_PARTY_APPS = [
     'rest_framework',
     'djoser',
     'rest_framework.authtoken',
     'import_export',
     'django_filters',
+    'corsheaders',
+]
 
+LOCAL_APPS = [
     'api',
     'recipes',
     'users',
 ]
 
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -59,11 +73,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_foodgram.wsgi.application'
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
+#     }
+# }
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
+        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', default=None),
+        'USER': os.getenv('POSTGRES_USER', default=None),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default=None),
+        'HOST': os.getenv('DB_HOST', default=None),
+        'PORT': os.getenv('DB_PORT', default=None)
     }
 }
 
@@ -94,8 +118,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -109,10 +131,28 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 
-     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-     'PAGE_SIZE': 6,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
 }
 
 DJOSER = {
-    'HIDE_USERS': False
+    'HIDE_USERS': False,
+    'SERIALIZERS': {
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+        'SET_PASSWORD_SERIALIZER': 'api.serializers.MySetPasswordSerializer',
+    },
 }
+
+INTERNAL_IPS = ['127.0.0.1', ]
+
+CORS_URLS_REGEX = r'^/api/.*$'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')

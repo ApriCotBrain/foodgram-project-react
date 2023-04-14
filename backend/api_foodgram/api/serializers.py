@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import *
-from users.models import CustomUser, Subscription
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -33,23 +33,22 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed'
+            'is_subscribed',
         )
-        model = CustomUser
+        model = User
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if request is not None and hasattr(request, 'user'):
-            user = self.context['request'].user
-            if user.is_anonymous:
-                return False
-            if Subscription.objects.filter(
-                    user=user, subscribe=obj).exists():
-                return True
-            return False
+        if request is not None:
+            current_user = request.user
+            if current_user.is_authenticated:
+                return Subscription.objects.filter(user=current_user,
+                                                   subscribe=obj).exists()
+        return False
 
 
-class PasswordSerializer(serializers.Serializer):
+
+class MySetPasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 
@@ -115,16 +114,22 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
     def create(self, validated_data):
-        user = self.context['request'].user
+        current_user = self.context['request'].user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data, author=user)
+        recipe = Recipe.objects.create(**validated_data, author=current_user)
+        ingredient_counts = {}
         for ingredient in ingredients:
-            RecipeIngredient.objects.get_or_create(
-                recipe_id=recipe.id,
-                ingredient_id=ingredient['id'],
-                amount=ingredient['amount'],
-            )
+            ingredient_id = ingredient['id']
+            amount = ingredient['amount']
+            if ingredient_id in ingredient_counts:
+                ingredient_counts[ingredient_id] += amount
+            else:
+                RecipeIngredient.objects.get_or_create(
+                    recipe_id=recipe.id,
+                    ingredient_id=ingredient['id'],
+                    amount=ingredient['amount'],
+                )
         recipe.tags.set(tags)
         return recipe
 
@@ -135,14 +140,21 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         instance.tags.set(tags)
         instance.ingredient.clear()
-
+        ingredient_counts = {}
+        for ingredient in ingredients:
+            ingredient_id = ingredient['id']
+            amount = ingredient['amount']
+            if ingredient_id in ingredient_counts:
+                ingredient_counts[ingredient_id] += amount
+            else:
+                ingredient_counts[ingredient_id] = amount
         create_ingredients = [
             RecipeIngredient(
                 recipe=instance,
-                ingredient_id=ingredient['id'],
-                amount=ingredient['amount']
+                ingredient_id=ingredient_id,
+                amount=amount
             )
-            for ingredient in ingredients
+            for ingredient_id, amount in ingredient_counts.items()
         ]
         RecipeIngredient.objects.bulk_create(create_ingredients)
         instance.save()
@@ -163,21 +175,20 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorite(self, obj):
         request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            user = self.context['request'].user
-            if user.is_anonymous:
-                return False
-            if Favorite.objects.filter(user=user, recipe=obj.id).exists():
-                return True
+        if request:
+            current_user = request.user
+            if current_user.is_authenticated:
+                return Favorite.objects.filter(
+                    user=current_user, recipe=obj.id).exists()
+            return False
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            user = self.context['request'].user
-            if user.is_anonymous:
-                return False
-            if Basket.objects.filter(user=user, recipe=obj.id).exists():
-                return True
+        if request:
+            current_user = request.user
+            if current_user.is_authenticated:
+                return ShoppingCart.objects.filter(
+                    user=current_user, recipe=obj.id).exists()
             return False
 
     class Meta:
