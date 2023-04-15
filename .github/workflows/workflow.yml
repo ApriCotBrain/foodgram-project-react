@@ -66,5 +66,5 @@ jobs:
             echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            sudo docker pull 
-            sudo docker-compose up --build -d olgamelikhova2023/foodgram:v1
+            sudo docker pull olgamelikhova2023/foodgram:v1
+            sudo docker-compose up --build -d
