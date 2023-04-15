@@ -67,4 +67,4 @@ jobs:
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             sudo docker pull olgamelikhova2023/foodgram:v1
-            sudo docker-compose up --build -d
+            sudo docker-compose up -d
