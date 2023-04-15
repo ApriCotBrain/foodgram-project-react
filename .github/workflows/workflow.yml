@@ -57,6 +57,7 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            cd infra/
             sudo docker-compose stop
             sudo docker-compose rm web
             sudo docker-compose pull web
