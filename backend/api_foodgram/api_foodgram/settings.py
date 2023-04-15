@@ -5,11 +5,11 @@ import dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = os.path.join(BASE_DIR, '../../infra/.env')
-if os.path.isfile(dotenv_file):
-    dotenv.load_dotenv(dotenv_file)
-
-SECRET_KEY = os.environ['SECRET_KEY']
+# dotenv_file = os.path.join(BASE_DIR, '../../infra/.env')
+# if os.path.isfile(dotenv_file):
+#     dotenv.load_dotenv(dotenv_file)
+#
+# SECRET_KEY = os.environ['SECRET_KEY']
 SECRET_KEY = 'django-insecure-jrfw($kau=p&%15uzqp1!u)q=0jd9l*7k3$x88(!yeb5o13wz='
 
 DEBUG = True
