@@ -7,29 +7,17 @@ from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (
-    CreateRecipeSerializer,
-    CustomUserSerializer,
-    CutRecipeSerializer,
-    IngredientSerializer,
-    ReadRecipeSerializer,
-    SubscriptionSerializer,
-    TagSerializer,
-)
-from recipes.models import (
-    Ingredient,
-    Favorite,
-    Recipe,
-    RecipeIngredient,
-    Tag,
-    ShoppingCart,
-)
+from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
+                             CutRecipeSerializer, IngredientSerializer,
+                             ReadRecipeSerializer, SubscriptionSerializer,
+                             TagSerializer)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import CustomUser, Subscription
 
 User = get_user_model()
