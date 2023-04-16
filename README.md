@@ -37,5 +37,4 @@ http://localhost/
 http://158.160.10.230/
 ```
 
-![Workflow Status Badge](https://github.com/ApriCotBrain/
-foodgram-project-react/actions/workflows/workflow.yml/badge.svg)
+![Workflow Status Badge](https://github.com/ApriCotBrain/foodgram-project-react/actions/workflows/workflow.yml/badge.svg)
