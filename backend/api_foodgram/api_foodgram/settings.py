@@ -10,7 +10,6 @@ if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 
 SECRET_KEY = os.environ['SECRET_KEY']
-#SECRET_KEY = 'django-insecure-jrfw($kau=p&%15uzqp1!u)q=0jd9l*7k3$x88(!yeb5o13wz='
 
 DEBUG = True
 
@@ -74,12 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_foodgram.wsgi.application'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
-#     }
-# }
 
 DATABASES = {
     'default': {
