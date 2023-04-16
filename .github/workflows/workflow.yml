@@ -44,7 +44,7 @@ jobs:
         with:
           context: ./backend/api_foodgram/
           push: true
-          tags: olgamelikhova2023/foodgram:v1
+          tags: olgamelikhova2023/foodgram-backend:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -67,7 +67,8 @@ jobs:
             echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            sudo docker pull olgamelikhova2023/foodgram:v1
+            sudo docker pull olgamelikhova2023/foodgram-backend:v1
+            sudo docker pull olgamelikhova2023/foodgram-frontend:v1
             sudo docker-compose up -d
 
   send_message:
