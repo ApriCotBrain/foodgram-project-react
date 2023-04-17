@@ -88,10 +88,9 @@ class CreateRecipeIngredientSerializer(serializers.ModelSerializer):
 class CreateRecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     image = Base64ImageField()
-    tags = serializers.SlugRelatedField(
-        many=True,
+    tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
-        slug_field='id',
+        many=True,
     )
     ingredients = CreateRecipeIngredientSerializer(
         many=True,

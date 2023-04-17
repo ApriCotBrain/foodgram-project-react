@@ -1,3 +1,4 @@
+from api.filters import TagsFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
                              CutRecipeSerializer, IngredientSerializer,
@@ -17,7 +18,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from users.models import CustomUser, Subscription
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -37,7 +38,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (TagsFilter,)
     filterset_fields = ('tags',)
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
@@ -144,7 +145,7 @@ class CustomUserViewSet(UserViewSet):
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id=None):
         user = request.user
-        subscribe = get_object_or_404(CustomUser, id=id)
+        subscribe = get_object_or_404(User, id=id)
         if request.method == 'POST':
             subscription = Subscription.objects.create(
                 user=user, subscribe=subscribe)
