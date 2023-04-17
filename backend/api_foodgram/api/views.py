@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
@@ -57,13 +56,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def add_to(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = CutRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        obj, created = model.objects.get_or_create(user=user, recipe=recipe)
+        if created:
+            serializer = CutRecipeSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
 
     def delete_from(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
-        model.objects.filter(user=user, recipe=recipe).delete()
+        obj = get_object_or_404(model, user=user, recipe=recipe)
+        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
