@@ -102,7 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        basket = (
+        shopping_cart = (
             RecipeIngredient.objects.filter(
                 recipe__shopping_cart_recipe__user=request.user
             )
@@ -118,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ] = 'attachment; filename=shopping_cart.txt"'
 
         data = ['Ingredient\tAmount\tMeasurement Unit']
-        for item in basket:
+        for item in shopping_cart:
             data.append(
                 f"{item['ingredient__name']}"
                 f"\t{item['amount']}"
