@@ -1,22 +1,24 @@
-from api.filters import TagsFilter
-from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
-                             CutRecipeSerializer, IngredientSerializer,
-                             ReadRecipeSerializer, SubscriptionSerializer,
-                             TagSerializer)
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
+
+from api.filters import RecipeFilter
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
+                             CutRecipeSerializer, IngredientSerializer,
+                             ReadRecipeSerializer, SubscriptionSerializer,
+                             TagSerializer)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import Subscription
 
 User = get_user_model()
@@ -37,8 +39,8 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
-    filter_backends = (TagsFilter,)
-    filterset_fields = ('tags',)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
