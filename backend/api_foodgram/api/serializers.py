@@ -169,10 +169,10 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
     )
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    is_favorite = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
-    def get_is_favorite(self, obj):
+    def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request:
             current_user = request.user
@@ -201,7 +201,7 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
             'image',
             'text',
             'cooking_time',
-            'is_favorite',
+            'is_favorited',
             'is_in_shopping_cart',
         )
         read_only_fields = (
@@ -213,7 +213,7 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
             'image',
             'text',
             'cooking_time',
-            'is_favorite',
+            'is_favorited',
             'is_in_shopping_cart',
         )
 
