@@ -173,7 +173,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         if not ingredients or len(ingredients) == 0:
             raise serializers.ValidationError(
                 'Рецепт должен содержать хотя бы один ингредиент!')
-        elif not tags or len(tags) == 0:
+        if not tags or len(tags) == 0:
             raise serializers.ValidationError(
                 'Рецепт должен содержать хотя бы один тег!')
         for ingredient in ingredients:
