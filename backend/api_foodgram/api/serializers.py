@@ -124,11 +124,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             if ingredient_id in ingredient_counts:
                 ingredient_counts[ingredient_id] += amount
             else:
-                RecipeIngredient.objects.get_or_create(
-                    recipe_id=recipe.id,
-                    ingredient_id=ingredient['id'],
-                    amount=ingredient['amount'],
+                recipe_ingredient, created = (
+                    RecipeIngredient.objects.get_or_create(
+                        recipe=recipe,
+                        ingredient_id=ingredient_id,
+                        defaults={'amount': amount},
+                    )
                 )
+                if not created:
+                    recipe_ingredient.amount += amount
+                    recipe_ingredient.save()
         recipe.tags.set(tags)
         return recipe
 
@@ -158,6 +163,24 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.bulk_create(create_ingredients)
         instance.save()
         return instance
+
+    def validate(self, data):
+        if data.get('cooking_time') < 1:
+            raise serializers.ValidationError(
+                'Время приготовления должно быть не меньше одной минуты!')
+        ingredients = data.get('ingredients')
+        tags = data.get('tags')
+        if not ingredients or len(ingredients) == 0:
+            raise serializers.ValidationError(
+                'Рецепт должен содержать хотя бы один ингредиент!')
+        elif not tags or len(tags) == 0:
+            raise serializers.ValidationError(
+                'Рецепт должен содержать хотя бы один тег!')
+        for ingredient in ingredients:
+            if ingredient.get('amount') < 0:
+                raise serializers.ValidationError(
+                    'Количество ингредиентов должно быть не меньше одного!')
+        return data
 
 
 class ReadRecipeSerializer(serializers.ModelSerializer):
