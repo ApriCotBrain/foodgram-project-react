@@ -264,4 +264,3 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             'recipes': representation['recipes'],
             'recipes_count': representation['recipes_count'],
         }
-
