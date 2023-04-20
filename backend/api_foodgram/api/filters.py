@@ -1,5 +1,8 @@
+import django_filters
 import django_filters.rest_framework as filters
-from recipes.models import Recipe
+from django.db.models import Q
+
+from recipes.models import Recipe, Ingredient
 
 
 class RecipeFilter(filters.FilterSet):
@@ -23,3 +26,18 @@ class RecipeFilter(filters.FilterSet):
             return queryset.filter(
                 shopping_cart_recipe__user=self.request.user)
         return queryset
+
+
+class IngredientNameFilter(django_filters.Filter):
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(Q(name__istartswith=value))
+        return qs
+
+
+class IngredientFilter(filters.FilterSet):
+    name = IngredientNameFilter()
+
+    class Meta:
+        model = Ingredient
+        fields = ['name']
