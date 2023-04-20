@@ -135,6 +135,7 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     @action(methods=('GET', ),
             url_path='subscriptions', detail=False,
