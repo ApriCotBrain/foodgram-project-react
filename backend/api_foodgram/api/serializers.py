@@ -186,7 +186,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 class ReadRecipeSerializer(serializers.ModelSerializer):
 
     ingredients = ReadRecipeIngredientSerializer(
-        source='recipe_ingredient',
+        source='recipe_ingredients',
         many=True,
         read_only=True,
     )

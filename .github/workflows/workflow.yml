@@ -61,6 +61,8 @@ jobs:
             sudo rm .env
             touch .env
             echo SECRET_KEY='${{ secrets.SECRET_KEY }}' >> .env
+            echo DEBUG ='${{ secrets.DEBUG }}' >> .env
+            echo CORS_ALLOWED_ORIGINS ='${{ secrets.CORS_ALLOWED_ORIGINS }}' >> .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
             echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env

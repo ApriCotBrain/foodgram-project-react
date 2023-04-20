@@ -1,7 +1,9 @@
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
 
 from users.models import CustomUser
+
+MIN_COOKING_TIME = 1
 
 
 class Tag(models.Model):
@@ -55,7 +57,6 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipe_author',
         verbose_name='Автор рецепта',
-        blank=True, null=True,
     )
     name = models.CharField(
         max_length=256,
@@ -83,13 +84,14 @@ class Recipe(models.Model):
         verbose_name='Тэг рецепта',
     )
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления в минутах'
+        verbose_name='Время приготовления в минутах',
+        validators=[MinValueValidator(MIN_COOKING_TIME)]
     )
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name
@@ -99,12 +101,12 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredient',
+        related_name='recipe_ingredients',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredient',
+        related_name='recipe_ingredients',
     )
     amount = models.FloatField(
         verbose_name='Количество',
@@ -115,7 +117,7 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'Ингредиенты рецептов'
 
     def __str__(self):
-        return f'{self.recipe} {self.ingredient}'
+        return f'{self.recipe_id} {self.ingredient_id}'
 
 
 class RecipeTag(models.Model):
@@ -133,7 +135,7 @@ class RecipeTag(models.Model):
         verbose_name_plural = 'Тэги рецептов'
 
     def __str__(self):
-        return f'{self.recipe} {self.tags}'
+        return f'{self.recipe_id} {self.tags_id}'
 
 
 class Favorite(models.Model):
@@ -162,7 +164,7 @@ class Favorite(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} {self.recipe}'
+        return f'{self.user_id} {self.recipe_id}'
 
 
 class ShoppingCart(models.Model):
@@ -184,4 +186,4 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Корзины'
 
     def __str__(self):
-        return f'{self.user} {self.recipe}'
+        return f'{self.user_id} {self.recipe_id}'
