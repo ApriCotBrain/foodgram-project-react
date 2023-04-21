@@ -142,7 +142,7 @@ INTERNAL_IPS = ['127.0.0.1', ]
 
 CORS_URLS_REGEX = r'^/api/.*$'
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', default=None)
+CORS_ALLOWED_ORIGINS = [os.getenv('CORS_ALLOWED_ORIGINS')]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
