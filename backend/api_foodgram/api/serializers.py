@@ -241,7 +241,7 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
         )
 
 
-class CutRecipeSerializer(serializers.ModelSerializer):
+class ShortRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'image', 'cooking_time')
         model = Recipe
@@ -249,7 +249,7 @@ class CutRecipeSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     subscribe = CustomUserSerializer()
-    recipes = CutRecipeSerializer(
+    recipes = ShortRecipeSerializer(
         many=True,
         read_only=True,
         source='subscribe.recipe_author')

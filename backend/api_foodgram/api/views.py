@@ -1,6 +1,8 @@
+import io
+
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -14,8 +16,9 @@ from rest_framework.response import Response
 from api.filters import RecipeFilter, IngredientFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
-                             CutRecipeSerializer, IngredientSerializer,
-                             ReadRecipeSerializer, SubscriptionSerializer,
+                             IngredientSerializer, ReadRecipeSerializer,
+                             ShortRecipeSerializer,
+                             SubscriptionSerializer,
                              TagSerializer)
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
@@ -45,14 +48,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        data = ReadRecipeSerializer(
-            instance=serializer.instance).data
-        return Response(data, status=status.HTTP_201_CREATED)
-
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
             return CreateRecipeSerializer
@@ -62,7 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         obj, created = model.objects.get_or_create(user=user, recipe=recipe)
         if created:
-            serializer = CutRecipeSerializer(recipe)
+            serializer = ShortRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
@@ -109,25 +104,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe__shopping_cart_recipe__user=request.user
             )
             .values('ingredient__name',
-                    'ingredient__measurement_unit',)
+                    'ingredient__measurement_unit', )
             .annotate(amount=Sum('amount'))
             .order_by('ingredient__name')
         )
 
-        response = HttpResponse(content_type='text/plain')
-        response[
-            'Content-Disposition'
-        ] = 'attachment; filename=shopping_cart.txt"'
+        buffer = io.StringIO()
 
-        data = ['Ingredient\tAmount\tMeasurement Unit']
         for item in shopping_cart:
-            data.append(
-                f"{item['ingredient__name']}"
-                f"\t{item['amount']}"
-                f"\t{item['ingredient__measurement_unit']}"
-            )
+            buffer.write(f"{item['ingredient__name']}\t")
+            buffer.write(f"{item['amount']}\t")
+            buffer.write(f"{item['ingredient__measurement_unit']} \n")
 
-        response.write('\n'.join(data))
+        response = FileResponse(buffer.getvalue(), content_type='text/plain')
+        response[
+            'Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
         return response
 
 

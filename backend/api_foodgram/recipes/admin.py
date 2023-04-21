@@ -3,7 +3,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            RecipeTag, ShoppingCart, Tag)
+                            ShoppingCart, Tag)
 
 
 class IngredientResource(resources.ModelResource):
@@ -42,11 +42,6 @@ class AdminRecipe(admin.ModelAdmin):
 @admin.register(RecipeIngredient)
 class AdminRecipeIngredient(admin.ModelAdmin):
     list_display = ('recipe', 'ingredient', 'amount',)
-
-
-@admin.register(RecipeTag)
-class AdminRecipeTag(admin.ModelAdmin):
-    list_display = ('recipe', 'tags')
 
 
 @admin.register(Favorite)

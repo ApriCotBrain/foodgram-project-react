@@ -80,7 +80,7 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        through='RecipeTag',
+        related_name='recipes',
         verbose_name='Тэг рецепта',
     )
     cooking_time = models.PositiveSmallIntegerField(
@@ -118,24 +118,6 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f'{self.recipe_id} {self.ingredient_id}'
-
-
-class RecipeTag(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-    )
-    tags = models.ForeignKey(
-        Tag,
-        on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        verbose_name = 'Тэг рецепта'
-        verbose_name_plural = 'Тэги рецептов'
-
-    def __str__(self):
-        return f'{self.recipe_id} {self.tags_id}'
 
 
 class Favorite(models.Model):
