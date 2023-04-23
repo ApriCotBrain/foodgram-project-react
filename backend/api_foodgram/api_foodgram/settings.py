@@ -1,17 +1,19 @@
 import os
+from distutils.util import strtobool
 from pathlib import Path
 
-import dotenv
+from dotenv import dotenv_values, load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 dotenv_file = os.path.join(BASE_DIR, '../../infra/.env')
 if os.path.isfile(dotenv_file):
-    dotenv.load_dotenv(dotenv_file)
+    config = dotenv_values('.env')
 
 SECRET_KEY = os.environ['SECRET_KEY']
 
-DEBUG = os.getenv('DEBUG', default='False')
+DEBUG = bool(strtobool(os.getenv('DEBUG', 'False')))
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -31,7 +33,6 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',
     'import_export',
     'django_filters',
-    'corsheaders',
 ]
 
 LOCAL_APPS = [
@@ -45,7 +46,6 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -137,12 +137,6 @@ DJOSER = {
         'SET_PASSWORD_SERIALIZER': 'api.serializers.MySetPasswordSerializer',
     },
 }
-
-INTERNAL_IPS = ['127.0.0.1', ]
-
-CORS_URLS_REGEX = r'^/api/.*$'
-
-CORS_ALLOWED_ORIGINS = [os.getenv('CORS_ALLOWED_ORIGINS')]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

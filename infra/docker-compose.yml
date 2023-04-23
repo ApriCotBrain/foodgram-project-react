@@ -6,6 +6,7 @@ services:
       - postgresql_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
+
   backend:
     build:
       context: ../backend/api_foodgram
@@ -25,6 +26,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+
   nginx:
     image: nginx:1.19.3
     ports:
@@ -36,6 +38,8 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
       - ../frontend/:/app/result_build/
+    depends_on:
+      - backend
 
 volumes:
   postgresql_data:

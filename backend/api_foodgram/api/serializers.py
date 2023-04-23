@@ -103,8 +103,8 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'tags',
-            'author',
             'ingredients',
+            'author',
             'image',
             'name',
             'text',
@@ -164,6 +164,9 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def to_representation(self, instance):
+        return ReadRecipeSerializer(instance, context=self.context).data
+
     def validate(self, data):
         if data.get('cooking_time') < 1:
             raise serializers.ValidationError(
@@ -218,8 +221,8 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'tags',
-            'author',
             'ingredients',
+            'author',
             'name',
             'image',
             'text',
@@ -230,8 +233,8 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id',
             'tags',
-            'author',
             'ingredients',
+            'author',
             'name',
             'image',
             'text',
